@@ -42,6 +42,12 @@ class WallabagClient implements HttpClientInterface
             $options['headers']['cookie'] = $cookieHeader;
         }
 
+        $this->logger->log('debug', 'Sending authenticated request', [
+            'url' => $url,
+            'cookie' => $cookieHeader,
+            'headers' => $options['headers'] ?? [],
+        ]);
+
         $response = $this->httpClient->request($method, $url, $options);
 
         $login = $this->authenticator->loginIfRequested($response);
