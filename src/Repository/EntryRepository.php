@@ -744,6 +744,22 @@ class EntryRepository extends ServiceEntityRepository
     }
 
     /**
+     * Find entries for a user whose domain name matches the given needle.
+     *
+     * @param int    $userId
+     * @param string $domain
+     *
+     * @return array
+     */
+    public function findByDomainForUser($userId, $domain)
+    {
+        return $this->getSortedQueryBuilderByUser($userId)
+            ->andWhere("e.domainName LIKE '%" . $domain . "%'")
+            ->getQuery()
+            ->getResult();
+    }
+
+    /**
      * Return a query builder to be used by other getBuilderFor* method.
      *
      * @param int $userId
