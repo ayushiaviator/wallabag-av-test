@@ -41,6 +41,30 @@ class TagRestController extends WallabagRestController
     }
 
     /**
+     * Retrieve the number of tags for the current user.
+     *
+     * @Operation(
+     *     tags={"Tags"},
+     *     summary="Retrieve the number of tags for the current user.",
+     *     @OA\Response(
+     *         response="200",
+     *         description="Returned when successful"
+     *     )
+     * )
+     *
+     * @return JsonResponse
+     */
+    #[Route(path: '/api/tags/count.{_format}', name: 'api_get_tags_count', methods: ['GET'], defaults: ['_format' => 'json'])]
+    public function getTagsCountAction(TagRepository $tagRepository)
+    {
+        $tags = $tagRepository->findAllFlatTagsWithNbEntries($this->getUser()->getId());
+
+        $json = $this->serializer->serialize(['count' => \count($tags)], 'json');
+
+        return (new JsonResponse())->setJson($json);
+    }
+
+    /**
      * Permanently remove one tag from **every** entry by passing the Tag label.
      *
      * @Operation(
