@@ -424,6 +424,8 @@ class EntryController extends AbstractController
         // entry saved, dispatch event about it!
         $this->eventDispatcher->dispatch(new EntrySavedEvent($entry), EntrySavedEvent::NAME);
 
+        $this->addFlash('notice', 'Article was reloaded from the original website.');
+
         return $this->redirect($this->generateUrl('view', ['id' => $entry->getId()]));
     }
 
