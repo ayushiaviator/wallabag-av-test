@@ -4,15 +4,79 @@ namespace Wallabag\Controller\Api;
 
 use Nelmio\ApiDocBundle\Annotation\Operation;
 use OpenApi\Annotations as OA;
+use Pagerfanta\Doctrine\ORM\QueryAdapter as DoctrineORMAdapter;
+use Pagerfanta\Pagerfanta;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\IsGranted;
+use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 use Wallabag\Entity\Annotation;
 use Wallabag\Entity\Entry;
+use Wallabag\Repository\AnnotationRepository;
 
 class AnnotationRestController extends WallabagRestController
 {
+    /**
+     * Retrieve all annotations of the current user.
+     *
+     * @Operation(
+     *     tags={"Annotations"},
+     *     summary="Retrieve all annotations of the current user.",
+     *     @OA\Parameter(
+     *         name="page",
+     *         in="query",
+     *         description="What page you want.",
+     *         required=false,
+     *         @OA\Schema(
+     *             type="integer",
+     *             default=1,
+     *         )
+     *     ),
+     *     @OA\Parameter(
+     *         name="perPage",
+     *         in="query",
+     *         description="Results per page.",
+     *         required=false,
+     *         @OA\Schema(
+     *             type="integer",
+     *             default=30,
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response="200",
+     *         description="Returned when successful"
+     *     )
+     * )
+     *
+     * @return Response
+     */
+    #[Route(path: '/api/annotations.{_format}', name: 'api_get_all_annotations', methods: ['GET'], defaults: ['_format' => 'json'])]
+    public function getAllAnnotationsAction(Request $request, AnnotationRepository $annotationRepository)
+    {
+        $this->validateAuthentication();
+
+        $page = $request->query->getInt('page', 1);
+        $perPage = $request->query->getInt('perPage', 30);
+
+        $qb = $annotationRepository->getBuilderForAllByUser($this->getUser()->getId());
+
+        $pager = new Pagerfanta(new DoctrineORMAdapter($qb->getQuery(), true, false));
+        $pager->setMaxPerPage($perPage);
+        $pager->setCurrentPage($page);
+
+        $annotations = [
+            'total' => $pager->getNbResults(),
+            'page' => $page,
+            'perPage' => $perPage,
+            'rows' => iterator_to_array($pager->getCurrentPageResults()),
+        ];
+
+        $json = $this->serializer->serialize($annotations, 'json');
+
+        return (new JsonResponse())->setJson($json);
+    }
+
     /**
      * Retrieve annotations for an entry.
      *
