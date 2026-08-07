@@ -41,6 +41,7 @@ class WallabagExtension extends AbstractExtension implements GlobalsInterface
             new TwigFilter('removeWww', $this->removeWww(...)),
             new TwigFilter('removeScheme', $this->removeScheme(...)),
             new TwigFilter('removeSchemeAndWww', $this->removeSchemeAndWww(...)),
+            new TwigFilter('highlightSearchTerm', $this->highlightSearchTerm(...), ['is_safe' => ['html']]),
         ];
     }
 
@@ -63,6 +64,27 @@ class WallabagExtension extends AbstractExtension implements GlobalsInterface
         $query['body'] = $entry->getUrl();
 
         return (string) $uri->withQuery(Query::build($query, \PHP_QUERY_RFC3986));
+    }
+
+    /**
+     * Wrap every occurrence of the searched term in the given text with a <mark> tag.
+     *
+     * @param string $text
+     * @param string $term
+     *
+     * @return string
+     */
+    public function highlightSearchTerm($text, $term)
+    {
+        if (!\is_string($text) || '' === trim((string) $term)) {
+            return $text;
+        }
+
+        return preg_replace(
+            '/(' . preg_quote($term, '/') . ')/i',
+            '<mark>$1</mark>',
+            $text
+        );
     }
 
     public function removeWww($url)
