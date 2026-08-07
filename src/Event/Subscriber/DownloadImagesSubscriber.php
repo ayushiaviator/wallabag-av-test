@@ -41,7 +41,13 @@ class DownloadImagesSubscriber implements EventSubscriberInterface
 
         $entry = $event->getEntry();
 
-        $html = $this->downloadImages($entry);
+        try {
+            $html = $this->downloadImages($entry);
+        } catch (\Exception $e) {
+            // an image we can't fetch shouldn't prevent the entry from being saved
+            $html = false;
+        }
+
         if (false !== $html) {
             $this->logger->debug('DownloadImagesSubscriber: updated html.');
 
