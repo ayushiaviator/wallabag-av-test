@@ -118,6 +118,31 @@ class AnnotationController extends AbstractFOSRestController
     }
 
     /**
+     * Removes every annotation the current user has on an entry.
+     *
+     * @return JsonResponse
+     */
+    #[Route(path: '/annotations/{entry}/all.{_format}', name: 'annotations_delete_all_annotations', methods: ['DELETE'], defaults: ['_format' => 'json'])]
+    public function deleteAllAnnotationsAction(Entry $entry, AnnotationRepository $annotationRepository)
+    {
+        if ($entry->getUser()->getId() !== $this->getUser()->getId()) {
+            throw new NotFoundHttpException('Entry not found');
+        }
+
+        $annotations = $annotationRepository->findByEntryIdAndUserId($entry->getId(), $this->getUser()->getId());
+
+        foreach ($annotations as $annotation) {
+            $this->entityManager->remove($annotation);
+        }
+
+        $this->entityManager->flush();
+
+        $json = $this->serializer->serialize(['deleted' => \count($annotations)], 'json');
+
+        return (new JsonResponse())->setJson($json);
+    }
+
+    /**
      * Removes an annotation.
      *
      * @see Api\WallabagRestController
