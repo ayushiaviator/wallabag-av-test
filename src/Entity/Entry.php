@@ -194,6 +194,13 @@ class Entry
     private $readingTime = 0;
 
     /**
+     * @var \DateTime|null
+     */
+    #[ORM\Column(name: 'last_viewed_at', type: 'datetime', nullable: true)]
+    #[Groups(['entries_for_user', 'export_all'])]
+    private $lastViewedAt;
+
+    /**
      * @var string|null
      */
     #[ORM\Column(name: 'domain_name', type: 'text', nullable: true)]
@@ -590,6 +597,19 @@ class Entry
     public function setReadingTime($readingTime): void
     {
         $this->readingTime = $readingTime;
+    }
+
+    /**
+     * @return \DateTime|null
+     */
+    public function getLastViewedAt()
+    {
+        return $this->lastViewedAt;
+    }
+
+    public function setLastViewedAt(?\DateTime $lastViewedAt): void
+    {
+        $this->lastViewedAt = $lastViewedAt;
     }
 
     /**

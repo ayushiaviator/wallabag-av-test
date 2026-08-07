@@ -389,6 +389,11 @@ class EntryController extends AbstractController
     #[IsGranted('VIEW', subject: 'entry')]
     public function viewAction(Entry $entry)
     {
+        $entry->setLastViewedAt(new \DateTime());
+
+        $this->entityManager->persist($entry);
+        $this->entityManager->flush();
+
         return $this->render(
             'Entry/entry.html.twig',
             ['entry' => $entry]
