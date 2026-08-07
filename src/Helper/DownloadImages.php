@@ -222,6 +222,38 @@ class DownloadImages
     }
 
     /**
+     * Download the favicon of the domain hosting the entry.
+     *
+     * @param int    $entryId ID of the entry
+     * @param string $url     Url of the entry
+     *
+     * @return string|false Relative url to access the favicon from the web
+     */
+    public function downloadFavicon($entryId, $url)
+    {
+        $host = parse_url((string) $url, \PHP_URL_HOST);
+        if (empty($host)) {
+            return false;
+        }
+
+        $faviconUrl = 'https://' . $host . '/favicon.ico';
+
+        $content = @file_get_contents($faviconUrl);
+        if (false === $content) {
+            $this->logger->debug('DownloadImages: no favicon found', ['host' => $host]);
+
+            return false;
+        }
+
+        $relativePath = $this->getRelativePath($entryId);
+        $localPath = $this->baseFolder . '/' . $relativePath . '/favicon.ico';
+
+        file_put_contents($localPath, $content);
+
+        return $this->wallabagUrl . '/assets/images/' . $relativePath . '/favicon.ico';
+    }
+
+    /**
      * Remove all images for the given entry id.
      *
      * @param int $entryId ID of the entry
